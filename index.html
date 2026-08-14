@@ -90,7 +90,18 @@ tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
 <tfoot><tr><td colspan="2">Totaal</td><td id="total">0</td><td id="sfTotal">0</td></tr></tfoot>
 </table>
 
+<div class="actions">
+  <button class="action" onclick="saveRound()">💾 Ronde opslaan</button>
+  <button class="action secondary" onclick="printRound()">📄 PDF / print</button>
+</div>
+
 <button class="reset" onclick="resetScores()">Nieuwe ronde</button>
+
+<div class="history">
+  <h2>📋 Mijn rondes</h2>
+  <div id="historyList">Nog geen opgeslagen rondes.</div>
+</div>
+
 <div class="note" id="note"></div>
 </div>
 
