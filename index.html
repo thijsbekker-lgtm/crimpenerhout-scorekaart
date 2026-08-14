@@ -362,7 +362,21 @@ function render(){
 }
 
 function chg(h,d){
- scores[h]=Math.max(0,(scores[h]||0)+d);
+ const cfg=currentConfig();
+ const hole=cfg.holes.find(x=>x[0]===h);
+ const current=scores[h]||0;
+
+ // Before the first tap the field is blank.
+ // First + starts at par; first - starts at par - 1.
+ let next;
+ if(current===0){
+   next = hole ? hole[1] : 0;
+   if(d<0) next=Math.max(1,next-1);
+ }else{
+   next=Math.max(1,current+d);
+ }
+
+ scores[h]=next;
  localStorage.setItem(storageKey(h),scores[h]);
  render();
 }
