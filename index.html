@@ -4,103 +4,202 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff">
-<title>Crimpenerhout – Scorekaart</title>
+<title>Crimpenerhout – Digitale Scorekaart</title>
 <style>
 *{box-sizing:border-box}
 body{margin:0;background:#f5f4ef;color:#06384a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.wrap{max-width:560px;margin:auto;padding:14px 10px 28px}
-h1{text-align:center;font-size:28px;margin:5px 0 14px;font-weight:600}
-.top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.back{font-size:38px;line-height:1;color:#12a9c5}
-.settings{margin-left:auto;background:#fff;border:1px solid #ddd;border-radius:10px;padding:8px 10px;font-size:14px}
-.controls{display:flex;gap:8px;margin-bottom:10px}
-.controls label{background:#fff;border-radius:10px;padding:7px 10px;font-size:12px;color:#557}
-.controls input{width:45px;border:0;border-bottom:1px solid #aaa;text-align:center;font-size:16px;font-weight:700;background:transparent}
-table{width:100%;border-collapse:collapse;background:#fff}
-th{height:48px;font-size:13px;color:#8aa0a5;letter-spacing:.8px}
-td{height:76px;text-align:center;border-bottom:2px solid #e7e5df;font-size:22px}
+.wrap{max-width:600px;margin:auto;padding:12px 9px 28px}
+h1{text-align:center;font-size:27px;margin:4px 0 12px;font-weight:600}
+.settings{background:#fff;border-radius:15px;padding:10px;box-shadow:0 2px 10px #0001;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px}
+label{font-size:11px;color:#667b80}
+select,input{display:block;width:100%;height:40px;margin-top:3px;border:1px solid #d4d4d0;border-radius:9px;background:#fff;text-align:center;font-size:16px;font-weight:700;color:#06384a}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.stat{background:#eef0ed;border-radius:10px;padding:8px;text-align:center}
+.stat small{display:block;color:#687b80;font-size:10px}.stat b{font-size:17px}
+table{width:100%;border-collapse:collapse;background:#fff;border-radius:14px;overflow:hidden}
+th{height:45px;font-size:12px;color:#8aa0a5;letter-spacing:.6px}
+td{height:66px;text-align:center;border-bottom:2px solid #e7e5df;font-size:20px}
 td+td{border-left:2px solid #e7e5df}
-.hole{font-weight:500}.par{font-weight:500}
-.par small{font-size:13px;vertical-align:super;margin-left:2px}
-.scorebox{display:flex;align-items:center;justify-content:center;gap:7px}
-.scorebox button{border:0;background:#eef0ed;border-radius:50%;width:38px;height:38px;font-size:22px;color:#06384a}
-.score{min-width:25px;font-weight:600}
-.sf{font-weight:500}
-.total td{height:70px;border-bottom:0;font-size:24px;font-weight:600}
-.total td:first-child{text-align:center}
-.total td+td{border-left:2px solid #ddd}
-.note{margin-top:12px;text-align:center;color:#65777c;font-size:12px;line-height:1.4}
+.hole{font-weight:600}.ik{font-size:12px;vertical-align:super;margin-left:2px;color:#557}
+.scorebox{display:flex;align-items:center;justify-content:center;gap:5px}
+.scorebox button{border:0;background:#eef0ed;border-radius:50%;width:37px;height:37px;font-size:21px;color:#06384a}
+.score{min-width:25px;font-weight:700}
+.sf{font-weight:600}
+tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
+.note{font-size:11px;color:#687b80;line-height:1.45;text-align:center;margin-top:10px}
+.reset{width:100%;margin-top:9px;border:0;border-radius:11px;padding:11px;background:#e4e4e0;font-weight:700;color:#06384a}
 </style>
 </head>
 <body>
 <div class="wrap">
-<div class="top"><div class="back">‹</div><h1 style="flex:1">Scorekaart</h1></div>
-<div class="controls">
-<label>Handicap-slagen <input id="hcp" type="number" min="0" max="54" value="6"></label>
-<button class="settings" onclick="resetScores()">Nieuwe ronde</button>
+<h1>Scorekaart</h1>
+
+<div class="settings">
+<div class="grid">
+<label>Handicap Index
+<input id="hi" type="number" min="-10" max="54" step="0.1" value="14.2">
+</label>
+<label>Tee / tabel
+<select id="sex">
+<option value="men">Heren</option>
+<option value="women">Dames</option>
+</select>
+</label>
+<label>Ronde
+<select id="holesSelect">
+<option value="9">9 holes</option>
+<option value="18">18 holes</option>
+</select>
+</label>
 </div>
+
+<div class="stats">
+<div class="stat"><small>Baanhandicap</small><b id="courseHcp">—</b></div>
+<div class="stat"><small>CR / Slope</small><b id="crsr">—</b></div>
+<div class="stat"><small>Par</small><b id="coursePar">—</b></div>
+</div>
+</div>
+
 <table>
-<thead><tr><th>HOLE</th><th>PAR<small>+IK</small></th><th>SLAGEN</th><th>STABLEFORD</th></tr></thead>
+<thead><tr><th>HOLE</th><th>PAR + IK</th><th>SLAGEN</th><th>STABLEFORD</th></tr></thead>
 <tbody id="rows"></tbody>
-<tfoot><tr class="total"><td colspan="2">Totaal</td><td id="total">0</td><td id="sftotal">0</td></tr></tfoot>
+<tfoot><tr><td colspan="2">Totaal</td><td id="total">0</td><td id="sfTotal">0</td></tr></tfoot>
 </table>
-<div class="note">Geel • 9 holes • Par 33 • CR 68,8 • Slope 124<br>IK = handicapslag op die hole. Bij 6 handicapslagen krijgt SI 1 t/m 6 één slag.</div>
+
+<button class="reset" onclick="resetScores()">Nieuwe ronde</button>
+<div class="note">
+De baanhandicap wordt automatisch berekend uit Handicap Index, Course Rating en Slope Rating.
+Handicapslagen worden per hole verdeeld volgens de Stroke Index. 9 holes gebruikt de oneven SI's; bij 18 holes krijgt de tweede ronde de bijbehorende even SI's.
 </div>
+</div>
+
 <script>
-const holes=[[1,4,11],[2,3,17],[3,4,5],[4,3,9],[5,4,3],[6,3,15],[7,4,13],[8,5,1],[9,3,7]];
-const scores={};
+const base=[
+ [1,4,11],[2,3,17],[3,4,5],[4,3,9],[5,4,3],
+ [6,3,15],[7,4,13],[8,5,1],[9,3,7]
+];
+
+const data={
+ men:{cr9:32.1,sr9:114,par9:33,cr18:64.2,sr18:114,par18:66},
+ women:{cr9:34.4,sr9:124,par9:33,cr18:68.8,sr18:124,par18:66}
+};
+
+let scores={};
+const hi=document.getElementById('hi');
+const sex=document.getElementById('sex');
+const holesSelect=document.getElementById('holesSelect');
 const rows=document.getElementById('rows');
-const hcp=document.getElementById('hcp');
-const savedHcp=localStorage.getItem('crimp_hcp');
-if(savedHcp!==null)hcp.value=savedHcp;
 
-holes.forEach(h=>{
- scores[h[0]]=+(localStorage.getItem('crimp_'+h[0])||0);
- rows.innerHTML+=`<tr>
- <td class="hole">${h[0]}</td>
- <td class="par">${h[1]}<small id="ik${h[0]}"></small></td>
- <td><div class="scorebox"><button onclick="chg(${h[0]},-1)">−</button><span class="score" id="s${h[0]}">${scores[h[0]]||'—'}</span><button onclick="chg(${h[0]},1)">+</button></div></td>
- <td class="sf" id="f${h[0]}">—</td>
- </tr>`;
-});
+function key(n){return 'crimp_score_'+n}
+function roundHalfUp(x){return Math.floor(x+0.5)}
 
-function strokes(si){
- let x=Math.max(0,+hcp.value||0);
- return Math.floor(x/9)+(si<=x%9?1:0);
+function getCourse(){
+ const d=data[sex.value], n=+holesSelect.value;
+ return n===9
+  ? {cr:d.cr9,sr:d.sr9,par:d.par9}
+  : {cr:d.cr18,sr:d.sr18,par:d.par18};
 }
-function sf(par,score,si){
+
+function getCourseHcp(){
+ const d=getCourse();
+ const h=+hi.value||0;
+ return roundHalfUp(h*(d.sr/113)+(d.cr-d.par));
+}
+
+function buildHoles(){
+ const n=+holesSelect.value;
+ if(n===9) return base;
+ const even=[12,18,6,10,4,16,14,2,8];
+ return base.concat(base.map((h,i)=>[h[0]+9,h[1],even[i]]));
+}
+
+function strokesForSI(si){
+ const ch=getCourseHcp();
+ if(ch<=0) return ch<0 && si>=19 ? -1 : 0;
+ const whole=Math.floor(ch/18);
+ const rem=ch%18;
+ return whole+(si<=rem?1:0);
+}
+
+function stableford(par,score,si){
  if(!score)return null;
- return Math.max(0,2+par-(score-strokes(si)));
+ const net=score-strokesForSI(si);
+ return Math.max(0,2+(par-net));
 }
-function update(){
- let total=0,sftotal=0;
- holes.forEach(h=>{
+
+function render(){
+ rows.innerHTML='';
+ buildHoles().forEach(h=>{
+  const tr=document.createElement('tr');
   const v=scores[h[0]]||0;
-  const st=strokes(h[2]);
-  const ik=document.getElementById('ik'+h[0]);
-  ik.textContent=st?` +${st}`:'';
-  if(v)total+=v;
-  const p=sf(h[1],v,h[2]);
-  document.getElementById('f'+h[0]).textContent=p===null?'—':p;
-  if(p!==null)sftotal+=p;
+  tr.innerHTML=
+   `<td class="hole">${h[0]}</td>`+
+   `<td>${h[1]}<span class="ik" id="ik${h[0]}"></span></td>`+
+   `<td><div class="scorebox"><button onclick="chg(${h[0]},-1)">−</button><span class="score" id="s${h[0]}">${v||'—'}</span><button onclick="chg(${h[0]},1)">+</button></div></td>`+
+   `<td class="sf" id="sf${h[0]}">—</td>`;
+  rows.appendChild(tr);
+ });
+ update();
+}
+
+function update(){
+ const d=getCourse();
+ const ch=getCourseHcp();
+ document.getElementById('courseHcp').textContent=ch;
+ document.getElementById('crsr').textContent=`${d.cr.toFixed(1)} / ${d.sr}`;
+ document.getElementById('coursePar').textContent=d.par;
+
+ let total=0,sft=0;
+ buildHoles().forEach(h=>{
+  const v=scores[h[0]]||0;
+  const hs=strokesForSI(h[2]);
+  document.getElementById('ik'+h[0]).textContent=hs>0?` +${hs}`:(hs<0?` ${hs}`:'');
+  document.getElementById('s'+h[0]).textContent=v||'—';
+  const p=stableford(h[1],v,h[2]);
+  document.getElementById('sf'+h[0]).textContent=p===null?'—':p;
+  if(v) total+=v;
+  if(p!==null)sft+=p;
  });
  document.getElementById('total').textContent=total;
- document.getElementById('sftotal').textContent=sftotal;
+ document.getElementById('sfTotal').textContent=sft;
 }
+
 function chg(h,d){
- scores[h]=Math.max(0,scores[h]+d);
- localStorage.setItem('crimp_'+h,scores[h]);
- document.getElementById('s'+h).textContent=scores[h]||'—';
+ scores[h]=Math.max(0,(scores[h]||0)+d);
+ localStorage.setItem(key(h),scores[h]);
  update();
+}
+function loadScores(){
+ scores={};
+ for(let i=1;i<=18;i++) scores[i]=+(localStorage.getItem(key(i))||0);
 }
 function resetScores(){
  if(confirm('Alle scores van deze ronde wissen?')){
-  holes.forEach(h=>{scores[h[0]]=0;localStorage.removeItem('crimp_'+h[0]);document.getElementById('s'+h[0]).textContent='—';});
+  for(let i=1;i<=18;i++){scores[i]=0;localStorage.removeItem(key(i))}
   update();
  }
 }
-hcp.oninput=()=>{localStorage.setItem('crimp_hcp',hcp.value);update()};
-update();
+
+const savedHI=localStorage.getItem('crimp_hi');
+const savedSex=localStorage.getItem('crimp_sex');
+const savedHoles=localStorage.getItem('crimp_holes');
+if(savedHI!==null)hi.value=savedHI;
+if(savedSex!==null)sex.value=savedSex;
+if(savedHoles!==null)holesSelect.value=savedHoles;
+loadScores();
+
+[hi,sex,holesSelect].forEach(el=>el.addEventListener('change',()=>{
+ localStorage.setItem('crimp_hi',hi.value);
+ localStorage.setItem('crimp_sex',sex.value);
+ localStorage.setItem('crimp_holes',holesSelect.value);
+ render();
+}));
+hi.addEventListener('input',()=>{
+ localStorage.setItem('crimp_hi',hi.value);
+ render();
+});
+render();
 </script>
 </body>
 </html>
