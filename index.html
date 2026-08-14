@@ -151,21 +151,26 @@ function buildHoles(){
 
 function strokesForSI(si){
  const ch=getCourseHcp();
- if(ch===null) return 0;
- if(ch<=0) return 0;
+ if(ch===null || ch<=0) return 0;
 
- // On a 9-hole course the supplied Stroke Indexes are 1,3,5,...,17.
- // Therefore handicaps strokes must be allocated by the RANKING of the
- // Stroke Indexes on these 9 holes, not by the numeric test SI <= handicap.
+ // IMPORTANT:
+ // The Stroke Index is a RANKING, not a hole number.
+ // For 9 holes the supplied SIs are 1,3,5,7,9,11,13,15,17.
+ // For 18 holes, the second time around the same 9 holes gets the
+ // corresponding even SIs: 2,4,6,8,10,12,14,16,18.
+ //
+ // We therefore sort ALL Stroke Indexes on the selected round and give
+ // strokes to the lowest-ranked SIs. This also works for >18 handicap.
  const holeList=buildHoles();
  const sortedSI=[...new Set(holeList.map(h=>h[2]))].sort((a,b)=>a-b);
  const idx=sortedSI.indexOf(si);
  if(idx<0) return 0;
 
- const n=sortedSI.length; // 9 or 18
- const base=Math.floor(ch/n);
- const rem=ch%n;
- return base+(idx<rem?1:0);
+ const n=sortedSI.length;
+ const whole=Math.floor(ch/n);
+ const remainder=ch%n;
+
+ return whole + (idx < remainder ? 1 : 0);
 }
 
 function stableford(par,score,si){
