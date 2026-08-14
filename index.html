@@ -3,80 +3,69 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#171717">
-<title>Crimpenerhout – Scorekaart geel</title>
+<meta name="theme-color" content="#ffffff">
+<title>Crimpenerhout – Scorekaart</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f3f4f1;color:#171717;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.wrap{max-width:520px;margin:auto;padding:14px 12px 30px}
-h1{font-size:24px;margin:4px 0 2px}.sub{color:#666;margin-bottom:12px}
-.card{background:#fff;border-radius:18px;padding:10px;box-shadow:0 2px 12px #0001}
-.course{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:10px}
-.info{background:#f0f0ed;border-radius:11px;padding:9px;text-align:center}.info small{display:block;color:#777;font-size:11px}.info b{font-size:16px}
-.hcp{display:flex;align-items:center;justify-content:space-between;background:#f0f0ed;border-radius:12px;padding:10px;margin-bottom:8px}.hcp input{width:60px;height:40px;border:1px solid #ccc;border-radius:9px;text-align:center;font-size:18px;font-weight:700}
-.row{display:grid;grid-template-columns:58px 40px 40px 1fr;align-items:center;min-height:68px;border-bottom:1px solid #eee}
-.head{min-height:30px!important;color:#777;font-size:11px;font-weight:600}.center{text-align:center}.hole{font-weight:700}
-.scorebox{display:flex;align-items:center;justify-content:flex-end;gap:6px}.scorebox button{border:0;width:42px;height:42px;border-radius:50%;font-size:24px;background:#e8e8e5}.score{min-width:24px;text-align:center;font-size:21px;font-weight:700}.sf{width:42px;text-align:center;font-size:12px;color:#666}
-.totals{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}.total{background:#171717;color:white;border-radius:14px;padding:13px;font-size:18px;font-weight:700}.total small{display:block;font-size:12px;font-weight:400;opacity:.75}
-.reset{width:100%;border:0;border-radius:12px;padding:12px;margin-top:9px;font-size:15px;font-weight:700}.note{font-size:12px;color:#777;margin-top:10px;line-height:1.45}
+*{box-sizing:border-box}
+body{margin:0;background:#f5f4ef;color:#06384a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:560px;margin:auto;padding:14px 10px 28px}
+h1{text-align:center;font-size:28px;margin:5px 0 14px;font-weight:600}
+.top{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.back{font-size:38px;line-height:1;color:#12a9c5}
+.settings{margin-left:auto;background:#fff;border:1px solid #ddd;border-radius:10px;padding:8px 10px;font-size:14px}
+.controls{display:flex;gap:8px;margin-bottom:10px}
+.controls label{background:#fff;border-radius:10px;padding:7px 10px;font-size:12px;color:#557}
+.controls input{width:45px;border:0;border-bottom:1px solid #aaa;text-align:center;font-size:16px;font-weight:700;background:transparent}
+table{width:100%;border-collapse:collapse;background:#fff}
+th{height:48px;font-size:13px;color:#8aa0a5;letter-spacing:.8px}
+td{height:76px;text-align:center;border-bottom:2px solid #e7e5df;font-size:22px}
+td+td{border-left:2px solid #e7e5df}
+.hole{font-weight:500}.par{font-weight:500}
+.par small{font-size:13px;vertical-align:super;margin-left:2px}
+.scorebox{display:flex;align-items:center;justify-content:center;gap:7px}
+.scorebox button{border:0;background:#eef0ed;border-radius:50%;width:38px;height:38px;font-size:22px;color:#06384a}
+.score{min-width:25px;font-weight:600}
+.sf{font-weight:500}
+.total td{height:70px;border-bottom:0;font-size:24px;font-weight:600}
+.total td:first-child{text-align:center}
+.total td+td{border-left:2px solid #ddd}
+.note{margin-top:12px;text-align:center;color:#65777c;font-size:12px;line-height:1.4}
 </style>
 </head>
 <body>
 <div class="wrap">
-<h1>Crimpenerhout — 9 holes</h1>
-<div class="sub">Geel • digitale scorekaart</div>
-<div class="card">
-<div class="course">
-<div class="info"><small>9 holes</small><b>Par 33</b></div>
-<div class="info"><small>18 holes</small><b>Par 66</b></div>
-<div class="info"><small>Geel</small><b>CR 68,8</b></div>
+<div class="top"><div class="back">‹</div><h1 style="flex:1">Scorekaart</h1></div>
+<div class="controls">
+<label>Handicap-slagen <input id="hcp" type="number" min="0" max="54" value="6"></label>
+<button class="settings" onclick="resetScores()">Nieuwe ronde</button>
 </div>
-<div class="course">
-<div class="info"><small>Slope</small><b>124</b></div>
-<div class="info"><small>Afstand 9 holes</small><b>2.267 m</b></div>
-<div class="info"><small>Jouw slagen</small><b id="hcpDisplay">6</b></div>
+<table>
+<thead><tr><th>HOLE</th><th>PAR<small>+IK</small></th><th>SLAGEN</th><th>STABLEFORD</th></tr></thead>
+<tbody id="rows"></tbody>
+<tfoot><tr class="total"><td colspan="2">Totaal</td><td id="total">0</td><td id="sftotal">0</td></tr></tfoot>
+</table>
+<div class="note">Geel • 9 holes • Par 33 • CR 68,8 • Slope 124<br>IK = handicapslag op die hole. Bij 6 handicapslagen krijgt SI 1 t/m 6 één slag.</div>
 </div>
-
-<div class="hcp"><span>Handicapslagen voor deze ronde</span><input id="hcp" type="number" min="0" max="54" value="6"></div>
-
-<div class="row head"><div>Hole</div><div class="center">Par</div><div class="center">SI</div><div class="center">Score / SF</div></div>
-<div id="rows"></div>
-
-<div class="totals">
-<div class="total"><small>Slagen</small><span id="total">0</span></div>
-<div class="total"><small>Stableford</small><span id="sftotal">0</span></div>
-</div>
-<button class="reset" onclick="resetScores()">Nieuwe ronde</button>
-<div class="note">
-Holegegevens en stroke index zijn overgenomen van de door jou aangeleverde Crimpenerhout-scorekaart.
-De aangeleverde handicaptafel is een 18-holes <b>dames</b>-tabel; daarom gebruik ik die niet automatisch om jouw 9-holes handicapslagen te bepalen. Je kunt hierboven het aantal handicapslagen instellen.
-</div>
-</div></div>
-
 <script>
-const holes=[
-[1,4,11],[2,3,17],[3,4,5],[4,3,9],[5,4,3],
-[6,3,15],[7,4,13],[8,5,1],[9,3,7]
-];
+const holes=[[1,4,11],[2,3,17],[3,4,5],[4,3,9],[5,4,3],[6,3,15],[7,4,13],[8,5,1],[9,3,7]];
 const scores={};
 const rows=document.getElementById('rows');
 const hcp=document.getElementById('hcp');
 const savedHcp=localStorage.getItem('crimp_hcp');
-if(savedHcp!==null) hcp.value=savedHcp;
+if(savedHcp!==null)hcp.value=savedHcp;
 
 holes.forEach(h=>{
  scores[h[0]]=+(localStorage.getItem('crimp_'+h[0])||0);
- rows.innerHTML+=`<div class="row">
- <div class="hole">Hole ${h[0]}</div><div class="center">${h[1]}</div><div class="center">${h[2]}</div>
- <div class="scorebox">
- <button onclick="chg(${h[0]},-1)">−</button>
- <span class="score" id="s${h[0]}">${scores[h[0]]||'—'}</span>
- <button onclick="chg(${h[0]},1)">+</button>
- <span class="sf" id="f${h[0]}">SF —</span>
- </div></div>`;
+ rows.innerHTML+=`<tr>
+ <td class="hole">${h[0]}</td>
+ <td class="par">${h[1]}<small id="ik${h[0]}"></small></td>
+ <td><div class="scorebox"><button onclick="chg(${h[0]},-1)">−</button><span class="score" id="s${h[0]}">${scores[h[0]]||'—'}</span><button onclick="chg(${h[0]},1)">+</button></div></td>
+ <td class="sf" id="f${h[0]}">—</td>
+ </tr>`;
 });
 
 function strokes(si){
- let x=+hcp.value||0;
+ let x=Math.max(0,+hcp.value||0);
  return Math.floor(x/9)+(si<=x%9?1:0);
 }
 function sf(par,score,si){
@@ -84,17 +73,19 @@ function sf(par,score,si){
  return Math.max(0,2+par-(score-strokes(si)));
 }
 function update(){
- let t=0,s=0;
+ let total=0,sftotal=0;
  holes.forEach(h=>{
-  let v=scores[h[0]]||0;
-  if(v)t+=v;
-  let p=sf(h[1],v,h[2]);
-  document.getElementById('f'+h[0]).textContent=p===null?'SF —':'SF '+p;
-  if(p!==null)s+=p;
+  const v=scores[h[0]]||0;
+  const st=strokes(h[2]);
+  const ik=document.getElementById('ik'+h[0]);
+  ik.textContent=st?` +${st}`:'';
+  if(v)total+=v;
+  const p=sf(h[1],v,h[2]);
+  document.getElementById('f'+h[0]).textContent=p===null?'—':p;
+  if(p!==null)sftotal+=p;
  });
- document.getElementById('total').textContent=t;
- document.getElementById('sftotal').textContent=s;
- document.getElementById('hcpDisplay').textContent=hcp.value||0;
+ document.getElementById('total').textContent=total;
+ document.getElementById('sftotal').textContent=sftotal;
 }
 function chg(h,d){
  scores[h]=Math.max(0,scores[h]+d);
@@ -104,17 +95,11 @@ function chg(h,d){
 }
 function resetScores(){
  if(confirm('Alle scores van deze ronde wissen?')){
-  holes.forEach(h=>{
-   scores[h[0]]=0;localStorage.removeItem('crimp_'+h[0]);
-   document.getElementById('s'+h[0]).textContent='—';
-  });
+  holes.forEach(h=>{scores[h[0]]=0;localStorage.removeItem('crimp_'+h[0]);document.getElementById('s'+h[0]).textContent='—';});
   update();
  }
 }
-hcp.oninput=()=>{
- localStorage.setItem('crimp_hcp',hcp.value);
- update();
-};
+hcp.oninput=()=>{localStorage.setItem('crimp_hcp',hcp.value);update()};
 update();
 </script>
 </body>
