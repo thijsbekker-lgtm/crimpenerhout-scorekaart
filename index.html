@@ -29,6 +29,23 @@ td+td{border-left:2px solid #e7e5df}
 tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
 .note{font-size:11px;color:#687b80;line-height:1.45;text-align:center;margin-top:10px}
 .reset{width:100%;margin-top:9px;border:0;border-radius:11px;padding:11px;background:#e4e4e0;font-weight:700;color:#06384a}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:9px}
+.action{border:0;border-radius:11px;padding:12px;background:#06384a;color:white;font-weight:700;font-size:15px}
+.action.secondary{background:#e4e4e0;color:#06384a}
+.history{margin-top:12px;background:#fff;border-radius:15px;padding:10px;box-shadow:0 2px 10px #0001}
+.history h2{font-size:18px;margin:2px 0 8px}
+.rounditem{display:flex;justify-content:space-between;gap:8px;align-items:center;padding:8px 4px;border-bottom:1px solid #eee;font-size:13px}.roundopen{flex:1;text-align:left;border:0;background:transparent;color:#06384a;padding:4px}
+.rounditem:last-child{border-bottom:0}
+.roundmeta{color:#667b80;font-size:11px;margin-top:2px}
+.delete{border:0;background:#f0f0ed;border-radius:8px;padding:7px 9px;color:#06384a}
+@media print{
+ body{background:white}
+ .settings,.actions,.history,.note{display:none!important}
+ .wrap{max-width:none;padding:0}
+ table{box-shadow:none}
+ h1{margin-bottom:20px}
+}
 </style>
 </head>
 <body>
@@ -396,6 +413,106 @@ if(savedHI)hi.value=savedHI;
 
 loadScores();
 updateUI();
+
+function currentRoundData(){
+ const cfg=currentConfig();
+ const ch=getCourseHcp(cfg);
+ let total=0,sft=0;
+ const holes=cfg.holes.map(h=>{
+   const score=scores[h[0]]||0;
+   const strokes=strokesForSI(h[2],cfg);
+   const sf=stableford(h[1],score,h[2],cfg);
+   if(score) total+=score;
+   if(sf!==null) sft+=sf;
+   return {hole:h[0],par:h[1],si:h[2],score,strokes,sf};
+ });
+ return {
+   date:new Date().toLocaleDateString('nl-NL'),
+   time:new Date().toLocaleTimeString('nl-NL',{hour:'2-digit',minute:'2-digit'}),
+   course:course.options[course.selectedIndex].text,
+   round:round.options[round.selectedIndex].text,
+   loop:loop.options[loop.selectedIndex].text,
+   handicap:+hi.value||0,
+   courseHcp:ch,
+   total,sft,holes
+ };
+}
+
+function getHistory(){
+ try{return JSON.parse(localStorage.getItem('golf_history')||'[]')}catch(e){return []}
+}
+function saveRound(){
+ const data=currentRoundData();
+ if(!data.holes.some(x=>x.score)){
+   alert('Vul eerst minimaal één score in.');
+   return;
+ }
+ const history=getHistory();
+ history.unshift(data);
+ localStorage.setItem('golf_history',JSON.stringify(history.slice(0,50)));
+ renderHistory();
+ alert('Ronde opgeslagen.');
+}
+function renderHistory(){
+ const el=document.getElementById('historyList');
+ const history=getHistory();
+ if(!history.length){el.textContent='Nog geen opgeslagen rondes.';return;}
+ el.innerHTML=history.map((r,i)=>{
+   const label=`${r.date} — ${r.course} — ${r.round}${r.loop&&r.loop!=='Hele baan'?' ('+r.loop+')':''}`;
+   return `<div class="rounditem">
+     <button class="roundopen" onclick="openRound(${i})">
+       <div><b>${label}</b><div class="roundmeta">Hcp ${r.handicap} • baanhcp ${r.courseHcp} • ${r.total} slagen • ${r.sft} Stableford</div></div>
+     </button>
+     <button class="delete" onclick="deleteRound(${i})">Wis</button>
+   </div>`;
+ }).join('');
+}
+function openRound(i){
+ const history=getHistory();
+ const r=history[i];
+ if(!r)return;
+
+ // Restore the settings first.
+ const courseIndex=[...course.options].findIndex(o=>o.text===r.course);
+ if(courseIndex>=0) course.value=course.options[courseIndex].value;
+ const roundIndex=[...round.options].findIndex(o=>o.text===r.round);
+ if(roundIndex>=0) round.value=round.options[roundIndex].value;
+ const loopIndex=[...loop.options].findIndex(o=>o.text===r.loop);
+ if(loopIndex>=0) loop.value=loop.options[loopIndex].value;
+ hi.value=r.handicap;
+
+ // Clear current scores and restore saved scores.
+ for(let n=1;n<=18;n++) scores[n]=0;
+ r.holes.forEach(x=>{scores[x.hole]=x.score||0});
+
+ // Persist the restored round as the current round.
+ localStorage.setItem('golf_hi',hi.value);
+ localStorage.setItem('golf_course',course.value);
+ localStorage.setItem('golf_round',round.value);
+ localStorage.setItem('golf_loop',loop.value);
+ for(let n=1;n<=18;n++){
+   localStorage.setItem(storageKey(n),scores[n]||0);
+ }
+ render();
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteRound(i){
+ const history=getHistory();
+ if(confirm('Deze opgeslagen ronde verwijderen?')){
+   history.splice(i,1);
+   localStorage.setItem('golf_history',JSON.stringify(history));
+   renderHistory();
+ }
+}
+function printRound(){
+ const data=currentRoundData();
+ if(!data.holes.some(x=>x.score)){
+   alert('Vul eerst minimaal één score in.');
+   return;
+ }
+ window.print();
+}
 </script>
 </body>
 </html>
