@@ -48,6 +48,33 @@
 .optional-label{font-size:10px;font-weight:600;color:#8e8e93;margin-left:3px;text-transform:lowercase}
 .extra-grid input::placeholder{color:#8e8e93}
 </style>
+<style>
+.stat-stepper{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
+  min-height:48px;
+}
+.stat-stepper button{
+  width:38px !important;
+  height:38px !important;
+  border-radius:50% !important;
+  background:#f2f2f7 !important;
+  color:#111 !important;
+  font-size:22px !important;
+  font-weight:500 !important;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.stat-stepper span{
+  min-width:28px;
+  text-align:center;
+  font-size:18px;
+  font-weight:700;
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -660,6 +687,14 @@ let players = JSON.parse(localStorage.getItem('golf_players') || '["Ik"]');
 
 function extraKey(h){ return `${course.value}|${round.value}|${loop.value}|${h}`; }
 function getExtra(h){ return extraStats[extraKey(h)] || {putts:'',fairway:'',gir:'',penalty:'',note:''}; }
+function changeStat(h, field, delta){
+  const e=getExtra(h);
+  const current=Number(e[field]||0);
+  const next=Math.max(0, Math.min(field==='putts'?10:10, current+delta));
+  setExtra(h,{[field]:next ? String(next) : ''});
+  const el=document.getElementById(`${field}-${h}`);
+  if(el) el.textContent=next || '—';
+}
 function setExtra(h, patch){
   extraStats[extraKey(h)]={...getExtra(h),...patch};
   localStorage.setItem('golf_extra_stats',JSON.stringify(extraStats));
@@ -693,8 +728,8 @@ function renderExtraStats(){
     tr.innerHTML=`<td colspan="4">
       <div class="extra-panel" id="extra-${h[0]}">
         <div class="extra-grid">
-          <label>Putts <span class="optional-label">optioneel</span><input inputmode="numeric" type="number" min="0" max="10" placeholder="—" value="${e.putts}" onchange="setExtra(${h[0]},{putts:this.value})"></label>
-          <label>Penalty <span class="optional-label">optioneel</span><input inputmode="numeric" type="number" min="0" max="10" placeholder="—" value="${e.penalty}" onchange="setExtra(${h[0]},{penalty:this.value})"></label>
+          <label>Putts <span class="optional-label">optioneel</span><div class="stat-stepper"><button type="button" onclick="changeStat(${h[0]},'putts',-1)">−</button><span id="putts-${h[0]}">${e.putts||'—'}</span><button type="button" onclick="changeStat(${h[0]},'putts',1)">+</button></div></label>
+          <label>Penalty <span class="optional-label">optioneel</span><div class="stat-stepper"><button type="button" onclick="changeStat(${h[0]},'penalty',-1)">−</button><span id="penalty-${h[0]}">${e.penalty||'—'}</span><button type="button" onclick="changeStat(${h[0]},'penalty',1)">+</button></div></label>
           <label>Fairway <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{fairway:this.value})"><option value="" ${e.fairway===''?'selected':''}>Niet ingevuld</option><option value="hit" ${e.fairway==='hit'?'selected':''}>✓ geraakt</option><option value="miss" ${e.fairway==='miss'?'selected':''}>✕ gemist</option></select></label>
           <label>GIR <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{gir:this.value})"><option value="" ${e.gir===''?'selected':''}>Niet ingevuld</option><option value="yes" ${e.gir==='yes'?'selected':''}>✓ GIR</option><option value="no" ${e.gir==='no'?'selected':''}>✕ geen GIR</option></select></label>
         </div>
