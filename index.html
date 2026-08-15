@@ -81,7 +81,7 @@
  </div>
 
  <div class="card current-player-card"><div class="section-title">Speler</div><div id="currentPlayerName" class="current-player-name">Ik</div><div id="playerSwitcher" class="player-switcher"></div></div><div class="card score-card">
-  <div class="score-head"><div><b>Scorekaart</b><small id="note">Kies eerst een baan om je ronde te starten.</small></div><button class="ghost" onclick="toggleStatsAll()">Statistieken</button></div>
+  <div class="score-head"><div><b>Scorekaart</b><small id="note">Kies eerst een baan om je ronde te starten.</small></div><button class="ghost" id="statsToggle" onclick="toggleStatsAll()">Statistieken per hole</button></div>
   <table>
    <thead><tr><th>HOLE</th><th>PAR + IK</th><th>SLAGEN</th><th>STABLEFORD</th></tr></thead>
    <tbody id="rows"></tbody>
@@ -697,7 +697,19 @@ function renderExtraStats(){
   });
 }
 function toggleStatsAll(){
-  document.querySelectorAll('.extra-panel').forEach(x=>x.classList.toggle('open'));
+  if(!course.value){
+    alert('Kies eerst een baan. Daarna kun je per hole de optionele statistieken invullen.');
+    return;
+  }
+  // Zorg dat de statistiekregels altijd aanwezig zijn voordat we ze openen.
+  if(!document.querySelector('.extra-panel')) renderExtraStats();
+  const panels=[...document.querySelectorAll('.extra-panel')];
+  if(!panels.length){
+    alert('Er zijn geen holes beschikbaar voor deze ronde.');
+    return;
+  }
+  const shouldOpen=panels.some(x=>!x.classList.contains('open'));
+  panels.forEach(x=>x.classList.toggle('open',shouldOpen));
 }
 function addStatsRows(){
   if(!course.value)return;
