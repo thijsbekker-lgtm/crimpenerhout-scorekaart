@@ -369,7 +369,7 @@ function render(){
  cfg.holes.forEach(h=>{
   const v=scores[h[0]]||0;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="hole">${h[0]}</td>
+  tr.innerHTML=`<td class="hole"><div class="hole-number">${h[0]}</div><button class="hole-stats-btn" onclick="showHoleStats(${h[0]})">＋ Stats</button></td>
   <td>${h[1]}<span class="ik" id="ik${h[0]}"></span></td>
   <td><div class="scorebox"><button onclick="chg(${h[0]},-1)">−</button><span class="score" id="s${h[0]}">${v||'—'}</span><button onclick="chg(${h[0]},1)">+</button></div></td>
   <td class="sf" id="sf${h[0]}">—</td>`;
@@ -666,8 +666,15 @@ function setExtra(h, patch){
 }
 
 function showHoleStats(h){
-  const box=document.getElementById('extra-'+h);
-  if(box) box.classList.toggle('open');
+  let box=document.getElementById('extra-'+h);
+  if(!box){
+    renderExtraStats();
+    box=document.getElementById('extra-'+h);
+  }
+  if(!box)return;
+  const open=box.classList.toggle('open');
+  const btn=document.querySelector(`.hole-stats-btn[onclick="showHoleStats(${h})"]`);
+  if(btn)btn.textContent=open?'− Sluit stats':'＋ Stats';
 }
 function saveHoleNote(h){
   const e=getExtra(h);
