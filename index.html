@@ -58,6 +58,7 @@ tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
 <div class="grid">
 <label>Golfbaan
 <select id="course">
+<option value="" selected>Kies een baan…</option>
 <option value="crimpenerhout">Crimpenerhout</option>
 <option value="kroonprins">De Kroonprins</option>
 </select>
@@ -396,9 +397,16 @@ function chg(h,d){
  render();
 }
 function resetScores(){
- if(confirm('Alle scores van deze ronde wissen?')){
+ if(confirm('Een nieuwe ronde starten? De huidige scores worden gewist en je moet opnieuw een baan kiezen.')){
   for(let i=1;i<=18;i++){scores[i]=0;localStorage.removeItem(storageKey(i));}
-  render();
+  course.value='';
+  localStorage.removeItem('golf_course');
+  // Keep handicap, but reset round settings to a neutral state.
+  round.value='9';
+  loop.value='first';
+  saveSettings();
+  updateUI();
+  window.scrollTo({top:0,behavior:'smooth'});
  }
 }
 
@@ -410,14 +418,25 @@ function saveSettings(){
 }
 
 function updateUI(){
+ const hasCourse=!!course.value;
+ round.disabled=!hasCourse;
+ loop.disabled=!hasCourse;
  // Loop selector is relevant only for 9 holes on the main Kroonprins.
  const kpMain9=course.value==='kroonprins' && round.value==='9';
- loopLabel.style.display=kpMain9?'block':'none';
+ loopLabel.style.display=(hasCourse && kpMain9)?'block':'none';
 
- // The par-3 option is exposed as a separate golfbaan choice.
- // Use an extra option dynamically so the UI remains simple.
- render();
- saveSettings();
+ if(hasCourse){
+   render();
+   saveSettings();
+ }else{
+   rows.innerHTML='';
+   document.getElementById('courseHcp').textContent='—';
+   document.getElementById('crsr').textContent='—';
+   document.getElementById('coursePar').textContent='—';
+   document.getElementById('total').textContent='0';
+   document.getElementById('sfTotal').textContent='0';
+   document.getElementById('note').textContent='Kies eerst een baan om je ronde te starten.';
+ }
 }
 
 // Add Par 3 as a distinct course choice.
