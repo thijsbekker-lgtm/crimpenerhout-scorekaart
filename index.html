@@ -369,7 +369,7 @@ function render(){
  cfg.holes.forEach(h=>{
   const v=scores[h[0]]||0;
   const tr=document.createElement('tr');
-  tr.innerHTML=`<td class="hole"><div class="hole-number">${h[0]}</div><button class="hole-stats-btn" onclick="showHoleStats(${h[0]})">＋ Stats</button></td>
+  tr.innerHTML=`<td class="hole"><div class="hole-number">${h[0]}</div><button class="hole-stats-btn" type="button" data-hole-stats="${h[0]}" onclick="showHoleStats(${h[0]})">＋ Stats</button></td>
   <td>${h[1]}<span class="ik" id="ik${h[0]}"></span></td>
   <td><div class="scorebox"><button onclick="chg(${h[0]},-1)">−</button><span class="score" id="s${h[0]}">${v||'—'}</span><button onclick="chg(${h[0]},1)">+</button></div></td>
   <td class="sf" id="sf${h[0]}">—</td>`;
@@ -673,7 +673,7 @@ function showHoleStats(h){
   }
   if(!box)return;
   const open=box.classList.toggle('open');
-  const btn=document.querySelector(`.hole-stats-btn[onclick="showHoleStats(${h})"]`);
+  const btn=document.querySelector(`.hole-stats-btn[data-hole-stats="${h}"]`);
   if(btn)btn.textContent=open?'− Sluit stats':'＋ Stats';
 }
 function saveHoleNote(h){
@@ -688,6 +688,7 @@ function renderExtraStats(){
   cfg.holes.forEach(h=>{
     const tr=document.createElement('tr');
     tr.className='extra-row';
+    tr.dataset.hole=h[0];
     const e=getExtra(h[0]);
     tr.innerHTML=`<td colspan="4">
       <div class="extra-panel" id="extra-${h[0]}">
@@ -697,10 +698,16 @@ function renderExtraStats(){
           <label>Fairway <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{fairway:this.value})"><option value="" ${e.fairway===''?'selected':''}>Niet ingevuld</option><option value="hit" ${e.fairway==='hit'?'selected':''}>✓ geraakt</option><option value="miss" ${e.fairway==='miss'?'selected':''}>✕ gemist</option></select></label>
           <label>GIR <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{gir:this.value})"><option value="" ${e.gir===''?'selected':''}>Niet ingevuld</option><option value="yes" ${e.gir==='yes'?'selected':''}>✓ GIR</option><option value="no" ${e.gir==='no'?'selected':''}>✕ geen GIR</option></select></label>
         </div>
-        <button class="mini-action" onclick="saveHoleNote(${h[0]})">📝 ${e.note?'Notitie bekijken/wijzigen':'Notitie toevoegen'}</button>
+        <button class="mini-action" type="button" onclick="saveHoleNote(${h[0]})">📝 ${e.note?'Notitie bekijken/wijzigen':'Notitie toevoegen'}</button>
       </div>
     </td>`;
-    tr.previousElementSibling?.after(tr);
+
+    // The previous version tried to insert a detached <tr> using
+    // previousElementSibling, which can never work. Find the actual score row
+    // and insert the stats row immediately after it.
+    const scoreRow=[...document.querySelectorAll('#rows > tr:not(.extra-row)')]
+      .find(row=>row.querySelector('.hole-number')?.textContent.trim()===String(h[0]));
+    if(scoreRow) scoreRow.after(tr);
   });
 }
 function toggleStatsAll(){
