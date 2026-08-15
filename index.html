@@ -75,6 +75,79 @@
   font-weight:700;
 }
 </style>
+<style>
+.round-status{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-left:8px;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#e9f7ee;
+  color:#248a45;
+  font-size:12px;
+  font-weight:700;
+  vertical-align:middle;
+}
+.round-status i{
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#34c759;
+  display:inline-block;
+}
+</style>
+<style>
+.course-history-block{border-top:1px solid var(--line)}
+.course-history-block:first-child{border-top:0}
+.course-card-button{
+  width:100%;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  color:var(--ink);
+  padding:14px 4px;
+  display:grid;
+  grid-template-columns:1fr auto auto 24px;
+  gap:14px;
+  align-items:center;
+  text-align:left;
+  cursor:pointer;
+}
+.course-card-button>div{min-width:0}
+.course-card-button strong{font-size:18px}
+.course-card-button small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.course-chevron{font-size:20px;color:var(--muted);text-align:center}
+.course-rounds{display:none;padding:0 4px 8px}
+.course-rounds.open{display:block}
+.course-round{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  padding:11px 4px;
+  border-top:1px solid var(--line);
+}
+.course-round-main{min-width:0}
+.course-round-main b{display:block;font-size:13px}
+.course-round-main small{display:block;color:var(--muted);font-size:10px;margin-top:3px}
+.history-action{
+  border:0;
+  border-radius:12px;
+  background:#f0f0f2;
+  color:#007aff;
+  padding:9px 11px;
+  font-size:11px;
+  font-weight:700;
+  white-space:nowrap;
+}
+@media(max-width:600px){
+ .course-card-button{grid-template-columns:1fr auto 20px;gap:8px}
+ .course-card-button>div:nth-child(3){display:none}
+ .course-round{align-items:flex-start;flex-direction:column}
+ .history-action{align-self:flex-start}
+}
+</style>
 </head>
 <body>
 <div class="app">
@@ -93,7 +166,7 @@
 <main>
 <section id="page-round" class="tabpage active">
  <div class="card settings">
-  <div class="section-title">Ronde instellen <span>LIVE</span></div>
+  <div class="section-title">Ronde instellen <span class="round-status"><i></i> Ronde bezig</span></div>
   <div class="grid">
    <label>Golfbaan<select id="course"><option value="" selected>Kies een baan…</option><option value="crimpenerhout">Crimpenerhout</option><option value="kroonprins">De Kroonprins</option></select></label>
    <label>Ronde<select id="round"><option value="9">9 holes</option><option value="18">18 holes</option></select></label>
@@ -626,12 +699,21 @@ function renderHistory(){
    </div>`;
  }).join('');
 }
+let editingHistoryIndex=-1;
+
+function openSavedRound(i){
+  openRound(i);
+  editingHistoryIndex=i;
+  const saveBtn=document.querySelector('.action-grid .primary');
+  if(saveBtn)saveBtn.textContent='Wijzigingen opslaan';
+  showTab('round');
+}
+
 function openRound(i){
  const history=getHistory();
  const r=history[i];
  if(!r)return;
 
- // Restore the settings first.
  const courseIndex=[...course.options].findIndex(o=>o.text===r.course);
  if(courseIndex>=0) course.value=course.options[courseIndex].value;
  const roundIndex=[...round.options].findIndex(o=>o.text===r.round);
@@ -640,27 +722,26 @@ function openRound(i){
  if(loopIndex>=0) loop.value=loop.options[loopIndex].value;
  hi.value=r.handicap;
 
- // Clear current scores and restore saved scores.
  for(let n=1;n<=18;n++) scores[n]=0;
  r.holes.forEach(x=>{
    scores[x.hole]=x.score||0;
+   if(x.extra) extraStats[`${course.value}|${round.value}|${loop.value}|${x.hole}`]={...getExtra(x.hole),...x.extra};
    if(x.note!==undefined)localStorage.setItem('note_'+course.value+'_'+round.value+'_'+loop.value+'_'+x.hole,x.note||'');
  });
+ localStorage.setItem('golf_extra_stats',JSON.stringify(extraStats));
 
- // Persist the restored round as the current round.
  localStorage.setItem('golf_hi',hi.value);
  localStorage.setItem('golf_course',course.value);
  localStorage.setItem('golf_round',round.value);
  localStorage.setItem('golf_loop',loop.value);
- for(let n=1;n<=18;n++){
-   localStorage.setItem(storageKey(n),scores[n]||0);
- }
+ for(let n=1;n<=18;n++) localStorage.setItem(storageKey(n),scores[n]||0);
+
  render();
  renderAnalysis(r);
  renderRecords();
+ setTimeout(()=>renderExtraStats(),50);
  window.scrollTo({top:0,behavior:'smooth'});
 }
-
 function deleteRound(i){
  const history=getHistory();
  if(confirm('Deze opgeslagen ronde verwijderen?')){
@@ -792,10 +873,19 @@ function saveRoundEnhanced(){
   const data=buildEnhancedRound();
   if(!data.holes.some(x=>x.score)){alert('Vul eerst minimaal één score in.');return;}
   const history=getHistory();
-  history.unshift(data);
-  localStorage.setItem('golf_history',JSON.stringify(history.slice(0,100)));
-  renderHistory(); renderRecords(); renderDashboard();
-  alert('Ronde opgeslagen.');
+  if(editingHistoryIndex>=0 && history[editingHistoryIndex]){
+    history[editingHistoryIndex]=data;
+    localStorage.setItem('golf_history',JSON.stringify(history.slice(0,100)));
+    alert('Wijzigingen opgeslagen.');
+  }else{
+    history.unshift(data);
+    localStorage.setItem('golf_history',JSON.stringify(history.slice(0,100)));
+    alert('Ronde opgeslagen.');
+  }
+  editingHistoryIndex=-1;
+  const saveBtn=document.querySelector('.action-grid .primary');
+  if(saveBtn)saveBtn.textContent='Opslaan';
+  renderHistory(); renderRecords(); renderDashboard(); renderCourseHistory();
 }
 window.saveRound=saveRoundEnhanced;
 
@@ -820,13 +910,37 @@ function renderCourseHistory(){
   const h=getHistory(), el=document.getElementById('courseHistory');
   const names=[...new Set(h.map(x=>x.course))];
   if(!names.length){el.innerHTML='<div class="empty">Je baanhistorie verschijnt hier na je eerste opgeslagen ronde.</div>';return;}
-  el.innerHTML=names.map(name=>{
-    const rs=h.filter(x=>x.course===name);
+  el.innerHTML=names.map((name,ni)=>{
+    const indexed=h.map((r,i)=>({r,i})).filter(x=>x.r.course===name);
+    const rs=indexed.map(x=>x.r);
     const best=Math.min(...rs.map(x=>x.total));
     const avg=(rs.reduce((a,x)=>a+x.total,0)/rs.length).toFixed(1).replace('.',',');
     const avgSf=(rs.reduce((a,x)=>a+x.sft,0)/rs.length).toFixed(1).replace('.',',');
-    return `<div class="course-card"><div><b>${name}</b><small>${rs.length} ronde${rs.length===1?'':'s'} • beste ${best}</small></div><div><strong>${avg}</strong><small>gem. slagen</small></div><div><strong>${avgSf}</strong><small>gem. SF</small></div></div>`;
+    const details=indexed.map(({r,i})=>`
+      <div class="course-round">
+        <div class="course-round-main">
+          <b>${r.date} · ${r.round}${r.loop&&r.loop!=='Hele baan'?' · '+r.loop:''}</b>
+          <small>${r.total} slagen · ${r.sft} Stableford · HCP ${r.handicap} · baanhcp ${r.courseHcp}</small>
+        </div>
+        <button class="history-action" type="button" onclick="openSavedRound(${i})">Bekijk / bewerk</button>
+      </div>`).join('');
+    return `<div class="course-history-block">
+      <button class="course-card course-card-button" type="button" onclick="toggleCourseHistory(${ni})">
+        <div><b>${name}</b><small>${rs.length} ronde${rs.length===1?'':'s'} • beste ${best}</small></div>
+        <div><strong>${avg}</strong><small>gem. slagen</small></div>
+        <div><strong>${avgSf}</strong><small>gem. SF</small></div>
+        <span class="course-chevron" id="course-chevron-${ni}">⌄</span>
+      </button>
+      <div class="course-rounds" id="course-rounds-${ni}">${details}</div>
+    </div>`;
   }).join('');
+}
+function toggleCourseHistory(i){
+  const box=document.getElementById('course-rounds-'+i);
+  const chevron=document.getElementById('course-chevron-'+i);
+  if(!box)return;
+  const open=box.classList.toggle('open');
+  if(chevron)chevron.textContent=open?'⌃':'⌄';
 }
 
 function renderMyGame(){
