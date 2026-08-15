@@ -46,6 +46,8 @@ tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
  table{box-shadow:none}
  h1{margin-bottom:20px}
 }
+
+.analysis-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}.analysis-item{background:#f5f5f7;border-radius:14px;padding:10px;text-align:center}.analysis-item small{display:block;color:var(--muted);font-size:10px}.analysis-item b{font-size:18px}.roundopen:active{opacity:.6}
 </style>
 </head>
 <body>
@@ -95,11 +97,24 @@ tfoot td{height:62px;border-bottom:0;font-weight:700;font-size:22px}
   <button class="action secondary" onclick="printRound()">📄 PDF / print</button>
 </div>
 
-<button class="reset" onclick="resetScores()">Nieuwe ronde</button>
+<div class="actions">
+  <button class="action secondary" onclick="addHoleNote()">📝 Hole-notitie</button>
+  <button class="action secondary" onclick="resetScores()">Nieuwe ronde</button>
+</div>
 
 <div class="history">
   <h2>📋 Mijn rondes</h2>
   <div id="historyList">Nog geen opgeslagen rondes.</div>
+</div>
+<div class="history" id="analysisCard" style="display:none">
+  <h2>📊 Ronde-analyse</h2>
+  <div class="stats" id="analysisStats"></div>
+  <div id="analysisText" class="note" style="margin-top:10px"></div>
+</div>
+
+<div class="history" id="recordsCard">
+  <h2>🏆 Persoonlijke records</h2>
+  <div id="recordsText" class="note">Nog geen opgeslagen rondes.</div>
 </div>
 
 <div class="note" id="note"></div>
@@ -439,6 +454,16 @@ if(savedHI)hi.value=savedHI;
 loadScores();
 updateUI();
 
+
+function addHoleNote(){
+ const cfg=currentConfig();
+ const n=prompt('Voor welke hole wil je een notitie toevoegen? (1-'+cfg.holes.length+')');
+ const hole=parseInt(n,10);
+ if(!hole || hole<1 || hole>cfg.holes.length)return;
+ const text=prompt('Notitie voor hole '+hole+':',localStorage.getItem('note_'+course.value+'_'+round.value+'_'+loop.value+'_'+hole)||'');
+ if(text!==null)localStorage.setItem('note_'+course.value+'_'+round.value+'_'+loop.value+'_'+hole,text);
+}
+
 function currentRoundData(){
  const cfg=currentConfig();
  const ch=getCourseHcp(cfg);
@@ -449,7 +474,8 @@ function currentRoundData(){
    const sf=stableford(h[1],score,h[2],cfg);
    if(score) total+=score;
    if(sf!==null) sft+=sf;
-   return {hole:h[0],par:h[1],si:h[2],score,strokes,sf};
+   return {hole:h[0],par:h[1],si:h[2],score,strokes,sf,
+     note:localStorage.getItem('note_'+course.value+'_'+round.value+'_'+loop.value+'_'+h[0])||''};
  });
  return {
    date:new Date().toLocaleDateString('nl-NL'),
@@ -476,8 +502,50 @@ function saveRound(){
  history.unshift(data);
  localStorage.setItem('golf_history',JSON.stringify(history.slice(0,50)));
  renderHistory();
+ renderAnalysis(data);
+ renderRecords();
  alert('Ronde opgeslagen.');
 }
+
+function renderAnalysis(r){
+ const card=document.getElementById('analysisCard');
+ const stats=document.getElementById('analysisStats');
+ const text=document.getElementById('analysisText');
+ const played=r.holes.filter(x=>x.score>0);
+ if(!played.length){card.style.display='none';return;}
+ const par=played.reduce((a,x)=>a+x.par,0);
+ const score=played.reduce((a,x)=>a+x.score,0);
+ const birdies=played.filter(x=>x.score<x.par).length;
+ const pars=played.filter(x=>x.score===x.par).length;
+ const bogeys=played.filter(x=>x.score===x.par+1).length;
+ const doubles=played.filter(x=>x.score>=x.par+2).length;
+ const diff=score-par;
+ const diffText=diff===0?'par':(diff>0?'+'+diff:String(diff));
+ stats.innerHTML=[
+  ['Slagen',score],['Stableford',r.sft],['T.o.v. par',diffText],
+  ['Birdies+',birdies],['Pars',pars],['Bogeys',bogeys]
+ ].map(x=>`<div class="analysis-item"><small>${x[0]}</small><b>${x[1]}</b></div>`).join('');
+ const sorted=[...played].sort((a,b)=>(b.score-b.par)-(a.score-a.par));
+ const best=[...played].sort((a,b)=>(a.score-a.par)-(b.score-b.par))[0];
+ const worst=sorted[0];
+ text.innerHTML=`Sterkste hole: <b>hole ${best.hole}</b> (${best.score===best.par?'par':(best.score<best.par?'onder par':'boven par')}). `+
+  `Meest uitdagende hole: <b>hole ${worst.hole}</b>. `+
+  `Gemiddeld ${ (score/played.length).toFixed(2).replace('.',',') } slagen per gespeelde hole.`;
+ card.style.display='block';
+}
+
+function renderRecords(){
+ const el=document.getElementById('recordsText');
+ const h=getHistory();
+ if(!h.length){el.textContent='Nog geen opgeslagen rondes.';return;}
+ const bestScore=h.reduce((a,b)=>b.total<a.total?b:a);
+ const bestSF=h.reduce((a,b)=>b.sft>a.sft?b:a);
+ const avg=(h.reduce((a,b)=>a+b.sft,0)/h.length).toFixed(1).replace('.',',');
+ el.innerHTML=`Beste score: <b>${bestScore.total}</b> slagen (${bestScore.course})<br>`+
+  `Beste Stableford: <b>${bestSF.sft}</b> (${bestSF.course})<br>`+
+  `Gemiddelde Stableford: <b>${avg}</b> over ${h.length} opgeslagen ronde${h.length===1?'':'s'}.`;
+}
+
 function renderHistory(){
  const el=document.getElementById('historyList');
  const history=getHistory();
@@ -508,7 +576,10 @@ function openRound(i){
 
  // Clear current scores and restore saved scores.
  for(let n=1;n<=18;n++) scores[n]=0;
- r.holes.forEach(x=>{scores[x.hole]=x.score||0});
+ r.holes.forEach(x=>{
+   scores[x.hole]=x.score||0;
+   if(x.note!==undefined)localStorage.setItem('note_'+course.value+'_'+round.value+'_'+loop.value+'_'+x.hole,x.note||'');
+ });
 
  // Persist the restored round as the current round.
  localStorage.setItem('golf_hi',hi.value);
@@ -519,6 +590,8 @@ function openRound(i){
    localStorage.setItem(storageKey(n),scores[n]||0);
  }
  render();
+ renderAnalysis(r);
+ renderRecords();
  window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -528,6 +601,7 @@ function deleteRound(i){
    history.splice(i,1);
    localStorage.setItem('golf_history',JSON.stringify(history));
    renderHistory();
+   renderRecords();
  }
 }
 function printRound(){
