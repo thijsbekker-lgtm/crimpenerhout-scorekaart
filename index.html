@@ -44,6 +44,10 @@
   margin-bottom:0;
 }
 </style>
+<style>
+.optional-label{font-size:10px;font-weight:600;color:#8e8e93;margin-left:3px;text-transform:lowercase}
+.extra-grid input::placeholder{color:#8e8e93}
+</style>
 </head>
 <body>
 <div class="app">
@@ -681,10 +685,10 @@ function renderExtraStats(){
     tr.innerHTML=`<td colspan="4">
       <div class="extra-panel" id="extra-${h[0]}">
         <div class="extra-grid">
-          <label>Putts<input inputmode="numeric" type="number" min="0" max="10" value="${e.putts}" onchange="setExtra(${h[0]},{putts:this.value})"></label>
-          <label>Penalty<input inputmode="numeric" type="number" min="0" max="10" value="${e.penalty}" onchange="setExtra(${h[0]},{penalty:this.value})"></label>
-          <label>Fairway<select onchange="setExtra(${h[0]},{fairway:this.value})"><option value="" ${e.fairway===''?'selected':''}>—</option><option value="hit" ${e.fairway==='hit'?'selected':''}>✓ geraakt</option><option value="miss" ${e.fairway==='miss'?'selected':''}>✕ gemist</option></select></label>
-          <label>GIR<select onchange="setExtra(${h[0]},{gir:this.value})"><option value="" ${e.gir===''?'selected':''}>—</option><option value="yes" ${e.gir==='yes'?'selected':''}>✓ GIR</option><option value="no" ${e.gir==='no'?'selected':''}>✕ geen GIR</option></select></label>
+          <label>Putts <span class="optional-label">optioneel</span><input inputmode="numeric" type="number" min="0" max="10" placeholder="—" value="${e.putts}" onchange="setExtra(${h[0]},{putts:this.value})"></label>
+          <label>Penalty <span class="optional-label">optioneel</span><input inputmode="numeric" type="number" min="0" max="10" placeholder="—" value="${e.penalty}" onchange="setExtra(${h[0]},{penalty:this.value})"></label>
+          <label>Fairway <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{fairway:this.value})"><option value="" ${e.fairway===''?'selected':''}>Niet ingevuld</option><option value="hit" ${e.fairway==='hit'?'selected':''}>✓ geraakt</option><option value="miss" ${e.fairway==='miss'?'selected':''}>✕ gemist</option></select></label>
+          <label>GIR <span class="optional-label">optioneel</span><select onchange="setExtra(${h[0]},{gir:this.value})"><option value="" ${e.gir===''?'selected':''}>Niet ingevuld</option><option value="yes" ${e.gir==='yes'?'selected':''}>✓ GIR</option><option value="no" ${e.gir==='no'?'selected':''}>✕ geen GIR</option></select></label>
         </div>
         <button class="mini-action" onclick="saveHoleNote(${h[0]})">📝 ${e.note?'Notitie bekijken/wijzigen':'Notitie toevoegen'}</button>
       </div>
